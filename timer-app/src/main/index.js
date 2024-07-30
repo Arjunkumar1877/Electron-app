@@ -3,12 +3,13 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
-function createWindow(): void {
+function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
+    frame: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -16,6 +17,8 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  mainWindow.setAlwaysOnTop(true, "screen");
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
