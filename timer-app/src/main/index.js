@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, globalShortcut } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
@@ -6,16 +6,27 @@ import icon from '../../resources/icon.png?asset'
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 300,
+    height: 300,
     show: false,
     frame: false,
+    transparent: true,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
+  })
+
+  let toggleOverlayHotkey = "CommandOrControl+6";
+  let isOverlayOn = false;
+
+  globalShortcut.register(toggleOverlayHotkey, ()=>{
+    isOverlayOn = !isOverlayOn;
+    mainWindow.setIgnoreMouseEvents(isOverlayOn);
+    mainWindow.webContents.send("overlay-mode", isOverlayOn);
+    console.log("overlay ", isOverlayOn);
   })
 
   mainWindow.setAlwaysOnTop(true, "screen");
@@ -53,8 +64,21 @@ app.whenReady().then(() => {
   })
 
   // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
+  // ipcMain.on('ping', () => console.log('pong'));
+   ipcMain.on('close-window', ()=>{
+    const currentWindow = BrowserWindow.getFocusedWindow();
+    if(currentWindow){
+      currentWindow.close()
+    }
+   })
 
+
+   ipcMain.on('minimize-window', ()=>{
+    const currentWindow = BrowserWindow.getFocusedWindow();
+    if(currentWindow){
+      currentWindow.minimize()
+    }
+   })
   createWindow()
 
   app.on('activate', function () {
